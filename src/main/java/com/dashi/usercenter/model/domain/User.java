@@ -73,4 +73,11 @@ public class User {
      */
     @TableLogic
     private Integer isDelete;
+
+    /**
+     * 用户角色权限
+     * 普通用户 - 0
+     * 管理员 - 1
+     */
+    private Integer userRole;
 }

@@ -12,8 +12,6 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +34,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     private static String SALT = "dashi";
 
-    private static final String USER_LOGIN_SALT = "userLoginState";
+    /**
+     * 用户登录状态健key
+     */
+    private static final String USER_LOGIN_STATE = "userLoginState";
 
 
     @Override
@@ -88,9 +89,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public User doLogin(String userAccount, String userPassword, HttpServletRequest request) {
+    public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //1.check
-        if (StringUtils.isAllBlank(userAccount, userPassword)) {
+        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return null;
         }
         if (userAccount.length() < 4) {
@@ -112,7 +113,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //账户是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount",userAccount);
-        queryWrapper.eq("userPassword",userPassword);
+        queryWrapper.eq("userPassword",encryptPassword);
         User user = userMapper.selectOne(queryWrapper);
         //用户不存在
         if (user == null) {
@@ -121,26 +122,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         //3.用户脱敏
-        User safetyUser = new User();
-        safetyUser.setId(user.getId());
-        safetyUser.setUsername(user.getUsername());
-        safetyUser.setUserAccount(user.getUserAccount());
-        safetyUser.setAvatarUrl(user.getAvatarUrl());
-        safetyUser.setGender(user.getGender());
-        safetyUser.setUserPassword(user.getUserPassword());
-        safetyUser.setPhone(user.getPhone());
-        safetyUser.setEmail(user.getEmail());
-        safetyUser.setUserStatus(user.getUserStatus());
-        safetyUser.setCreateTime(user.getCreateTime());
-        safetyUser.setUpdateTime(user.getUpdateTime());
-        safetyUser.setIsDelete(user.getIsDelete());
+        User safetyUser = getSafetyUser(user);
+
 
 
         //4.记录用户登录状态
-        request.getSession().setAttribute(USER_LOGIN_SALT, safetyUser);
+        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
         return safetyUser;
-
     }
+
+    /**
+     * 用户脱敏
+     * @param originUser
+     * @return
+     */
+
+    @Override
+    public User getSafetyUser(User originUser) {
+    User safetyUser = new User();
+    safetyUser.setId(originUser.getId());
+    safetyUser.setUsername(originUser.getUsername());
+    safetyUser.setUserAccount(originUser.getUserAccount());
+    safetyUser.setAvatarUrl(originUser.getAvatarUrl());
+    safetyUser.setGender(originUser.getGender());
+    safetyUser.setUserPassword(originUser.getUserPassword());
+    safetyUser.setPhone(originUser.getPhone());
+    safetyUser.setEmail(originUser.getEmail());
+    safetyUser.setUserRole(originUser.getUserRole());
+    safetyUser.setUserStatus(originUser.getUserStatus());
+    safetyUser.setCreateTime(originUser.getCreateTime());
+    safetyUser.setUpdateTime(originUser.getUpdateTime());
+    safetyUser.setIsDelete(originUser.getIsDelete());
+    return safetyUser;
+}
+
+
 }
 
 

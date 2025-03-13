@@ -38,7 +38,7 @@ public class UserServiceTest {
         String userAccount = "yupi";
         String userPassword = "";
         String checkPassword = "123456";
-        Long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword);
         Assertions.assertEquals(-1, result);
 
         userAccount = "yu";
@@ -59,7 +59,7 @@ public class UserServiceTest {
         result = userService.userRegister(userAccount, userPassword, checkPassword);
         Assertions.assertEquals(-1, result);
 
-        userAccount = "dogyupi";
+        userAccount = "dogYupi";
         checkPassword = "12345678";
         result = userService.userRegister(userAccount, userPassword, checkPassword);
         Assertions.assertEquals(-1, result);

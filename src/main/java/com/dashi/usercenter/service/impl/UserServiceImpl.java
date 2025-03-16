@@ -2,6 +2,8 @@ package com.dashi.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dashi.usercenter.common.ErrorCode;
+import com.dashi.usercenter.exception.BusinessException;
 import com.dashi.usercenter.model.domain.User;
 import com.dashi.usercenter.service.UserService;
 import com.dashi.usercenter.mapper.UserMapper;
@@ -40,17 +42,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private static final String USER_LOGIN_STATE = "userLoginState";
 
 
+    /**
+     * 用户注册
+     * @param userAccount
+     * @param userPassword
+     * @param checkPassword
+     * @param workerCode
+     * @return
+     */
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+    public long userRegister(String userAccount, String userPassword, String checkPassword, String workerCode) {
         //1.check
-        if (StringUtils.isAllBlank(userAccount, userPassword, checkPassword)) {
-            return -1;
+        if (StringUtils.isAllBlank(userAccount, userPassword, checkPassword, workerCode)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         if (userAccount.length() < 4) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
         }
         if (userPassword.length() < 8 ||  checkPassword.length() < 8) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码长度过短");
+        }
+        if (workerCode.length() > 5) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "员工工号过长");
         }
 
         //不能包含特殊字符
@@ -69,7 +82,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("userAccount",userAccount);
         long count = userMapper.selectCount(queryWrapper);
         if (count > 0) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账户重复");
+        }
+
+        //员工工号不重复
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("workerCode",workerCode);
+        count = userMapper.selectCount(queryWrapper);
+        if (count > 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "员工工号重复");
         }
 
        //2.加密
@@ -79,6 +100,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
+        user.setWorkerCode(workerCode);
         boolean saveResult = this.save(user);
         if (!saveResult) {
             return -1;
@@ -88,6 +110,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     }
 
+    /**
+     * 用户登录
+     * @param userAccount
+     * @param userPassword
+     * @param request
+     * @return
+     */
     @Override
     public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //1.check
@@ -125,11 +154,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User safetyUser = getSafetyUser(user);
 
 
-
         //4.记录用户登录状态
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
         return safetyUser;
     }
+
 
     /**
      * 用户脱敏
@@ -139,6 +168,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public User getSafetyUser(User originUser) {
+        if (originUser == null) {
+            return null;
+        }
     User safetyUser = new User();
     safetyUser.setId(originUser.getId());
     safetyUser.setUsername(originUser.getUsername());
@@ -149,12 +181,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     safetyUser.setPhone(originUser.getPhone());
     safetyUser.setEmail(originUser.getEmail());
     safetyUser.setUserRole(originUser.getUserRole());
+    safetyUser.setWorkerCode(originUser.getWorkerCode());
     safetyUser.setUserStatus(originUser.getUserStatus());
     safetyUser.setCreateTime(originUser.getCreateTime());
     safetyUser.setUpdateTime(originUser.getUpdateTime());
     safetyUser.setIsDelete(originUser.getIsDelete());
     return safetyUser;
 }
+
+    /**
+     * 用户退登录
+     * @param request
+     * @return
+     */
+    @Override
+    public int userLogout(HttpServletRequest request) {
+        //移除登录状态
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return 1;
+    }
 
 
 }

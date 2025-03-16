@@ -80,4 +80,10 @@ public class User {
      * 管理员 - 1
      */
     private Integer userRole;
+
+    /**
+     * 员工工号
+     */
+    private String workerCode;
+
 }

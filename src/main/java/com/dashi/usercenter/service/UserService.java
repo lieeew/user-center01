@@ -18,18 +18,15 @@ public interface UserService extends IService<User> {
      */
     String USER_LOGIN_STATE = "userLoginState";
 
-
     /**
      *用户注册
      * @param userAccount
      * @param userPassword
      * @param checkPassword
+     * @param workerCode
      * @return
      */
-long userRegister(String userAccount,String userPassword, String checkPassword);
-
-
-
+    long userRegister(String userAccount,String userPassword, String checkPassword,  String workerCode);
 
     /**
      * 用户登录
@@ -46,6 +43,13 @@ long userRegister(String userAccount,String userPassword, String checkPassword);
      * @return
      */
     User getSafetyUser(User originUser);
+
+    /**
+     * 用户退出登录
+     * @param request
+     * @return
+     */
+    int userLogout(HttpServletRequest request);
 }
 
 

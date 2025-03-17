@@ -2,8 +2,8 @@ package com.dashi.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dashi.usercenter.common.ErrorCode;
-import com.dashi.usercenter.exception.BusinessException;
+//import com.dashi.usercenter.common.ErrorCode;
+//import com.dashi.usercenter.exception.BusinessException;
 import com.dashi.usercenter.model.domain.User;
 import com.dashi.usercenter.service.UserService;
 import com.dashi.usercenter.mapper.UserMapper;
@@ -54,16 +54,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public long userRegister(String userAccount, String userPassword, String checkPassword, String workerCode) {
         //1.check
         if (StringUtils.isAllBlank(userAccount, userPassword, checkPassword, workerCode)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
+            return -1;
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         if (userAccount.length() < 4) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
+            return -1;
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
         }
         if (userPassword.length() < 8 ||  checkPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码长度过短");
+            return -1;
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码长度过短");
         }
         if (workerCode.length() > 5) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "员工工号过长");
+            return -1;
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "员工工号过长");
         }
 
         //不能包含特殊字符
@@ -82,7 +86,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("userAccount",userAccount);
         long count = userMapper.selectCount(queryWrapper);
         if (count > 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账户重复");
+            return -1;
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账户重复");
         }
 
         //员工工号不重复
@@ -90,7 +95,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("workerCode",workerCode);
         count = userMapper.selectCount(queryWrapper);
         if (count > 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "员工工号重复");
+            return -1;
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "员工工号重复");
         }
 
        //2.加密

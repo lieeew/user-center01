@@ -4,8 +4,6 @@ spring:
      driver-class-name: com.mysql.cj.jdbc.Driver
      url: jdbc:mysql://ip:3306/user_center
 
-     username:
-     password:
 
   # session 失效时间
    session:

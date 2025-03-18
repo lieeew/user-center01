@@ -10,10 +10,15 @@ import com.dashi.usercenter.model.domain.request.UserLoginRequest;
 import com.dashi.usercenter.model.domain.request.UserRegisterRequest;
 import com.dashi.usercenter.service.UserService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,16 +39,17 @@ public class UserController {
 
     /**
      * 用户注册
+     *
      * @param userRegisterRequest
      * @return
      */
 
     @PostMapping("/register")
 //    public Long userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
-  public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
 //            return null;
-          throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
@@ -51,7 +57,7 @@ public class UserController {
         String workerCode = userRegisterRequest.getWorkerCode();
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, workerCode)) {
 //            return null;
-           throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 //        return userService.userRegister(userAccount, userPassword, checkPassword, workerCode);
         long result = userService.userRegister(userAccount, userPassword, checkPassword, workerCode);
@@ -61,6 +67,7 @@ public class UserController {
 
     /**
      * 用户登录
+     *
      * @param userLoginRequest
      * @param request
      * @return
@@ -88,8 +95,22 @@ public class UserController {
 
     }
 
+    @PostMapping("/upload")
+    public void uploadFile(@RequestParam("file") MultipartFile multipartFile) throws IOException {
+        InputStream inputStream = multipartFile.getInputStream();
+        XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+        workbook.forEach((sheet) -> {
+            sheet.forEach((row) -> {
+                row.forEach((cell) -> {
+                    System.out.println(cell.getStringCellValue());
+                });
+            });
+        });
+    }
+
     /**
      * 用户退出登录
+     *
      * @param request
      * @return
      */
@@ -125,6 +146,7 @@ public class UserController {
 
     /**
      * 用户查询
+     *
      * @param username
      * @param request
      * @return
@@ -132,11 +154,11 @@ public class UserController {
 
     @GetMapping("/search")
 //    public List<User> searchUsers(String username,  HttpServletRequest request) {
-    public BaseResponse<List<User>> searchUsers(String username,  HttpServletRequest request) {
+    public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         //管理员才可查询
         if (!isAdmin(request)) {
 //            return new ArrayList<>();
-          throw new BusinessException(ErrorCode.NO_AUTH, "缺少管理员权限");
+            throw new BusinessException(ErrorCode.NO_AUTH, "缺少管理员权限");
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)) {
@@ -155,7 +177,7 @@ public class UserController {
 //    public Boolean deleteUser(@RequestBody long id, HttpServletRequest request) {
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         //管理员才可查询
-        if (! isAdmin(request)) {
+        if (!isAdmin(request)) {
 //            return false;
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
@@ -172,6 +194,7 @@ public class UserController {
 
     /**
      * 是否管理员？
+     *
      * @param request
      * @return
      */

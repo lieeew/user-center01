@@ -2,10 +2,10 @@ spring:
    #DateSource Config
    datasource:
      driver-class-name: com.mysql.cj.jdbc.Driver
-     url: jdbc:mysql://47.239.134.132:3306/user_center
+     url: jdbc:mysql://ip:3306/user_center
 
-     username: root
-     password: 1234
+     username:
+     password:
 
   # session 失效时间
    session:
